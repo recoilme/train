@@ -358,7 +358,7 @@ def parse_args():
     parser.add_argument(
         "--image_captions_filename",
         action="store_true",
-        default=True
+        default=True,
         help="Get captions from filename",
     )    
     
