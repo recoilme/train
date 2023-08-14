@@ -34,3 +34,7 @@ pip install git+https://github.com/huggingface/diffusers.git
 Make sure to log into your Hugging Face account and pass your access token so that we can push the trained checkpoints to the Hugging Face
 
 huggingface-cli login
+
+## train
+
+python3 train_sdxl2.py

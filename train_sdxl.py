@@ -28,8 +28,6 @@ from tqdm import tqdm
 from safetensors.torch import load_file, save_file
 from transformers import CLIPTextModel, CLIPTokenizer, CLIPTextConfig, CLIPTextModelWithProjection
 
-import lora_sdxl_TI
-
 from lora_sdxl import *
 
 logger = get_logger(__name__)
@@ -177,8 +175,8 @@ def parse_args():
     parser.add_argument(
         "--pretrained_model_name_or_path",
         type=str,
-        default="~/dream/stable-diffusion-XL",
-        required=True,
+        default="stabilityai/stable-diffusion-xl-base-1.0",
+        required=False,
         help="Path to pretrained model or model identifier from huggingface.co/models.",
     )
     parser.add_argument(
@@ -190,8 +188,8 @@ def parse_args():
     parser.add_argument(
         "--instance_data_dir",
         type=str,
-        default="~/dream/img",
-        required=True,
+        default="lora/img",
+        required=False,
         help="A folder containing the training data of instance images.",
     )
     parser.add_argument(
@@ -205,7 +203,7 @@ def parse_args():
         "--instance_prompt",
         type=str,
         default=None,
-        help="The prompt with identifier specifying the instance",
+        help="The prompt with identifier specifying the instance, example: photo, ",
     )
     parser.add_argument(
         "--class_prompt",
@@ -232,7 +230,7 @@ def parse_args():
     parser.add_argument(
         "--output_dir",
         type=str,
-        default="~/dream/out",
+        default="lora",
         help="The output directory where the model predictions and checkpoints will be written.",
     )
     parser.add_argument("--seed", type=int, default=1234, help="A seed for reproducible training.")
@@ -360,6 +358,7 @@ def parse_args():
     parser.add_argument(
         "--image_captions_filename",
         action="store_true",
+        default=True,
         help="Get captions from filename",
     )    
     
@@ -377,7 +376,7 @@ def parse_args():
     parser.add_argument(
         "--Session_dir",
         type=str,
-        default="~/dream/ses",     
+        default="lora",     
         help="Current session directory",
     )    
 
@@ -689,7 +688,6 @@ def main():
     unet.eval()
     
     model_path = os.path.join(args.Session_dir, os.path.basename(args.Session_dir) + ".safetensors")
-    model_path_TI = os.path.join(args.Session_dir, os.path.basename(args.Session_dir) + "_TI.safetensors")
     network = create_network(1, args.dim, 20000, unet)
     if args.resume:
         network.load_weights(model_path)
@@ -712,20 +710,7 @@ def main():
    
     
     tokenizers = [tokenizer_one, tokenizer_two]
-    text_encoders = [text_encoder_one, text_encoder_two]
-    
-    if os.path.exists(model_path_TI):    
-        for weights_file in [model_path_TI]:
-            if ";" in weights_file:
-                weights_file, multiplier = weights_file.split(";")
-                multiplier = float(multiplier)
-            else:
-                multiplier = 1.0
-
-            lora_model, weights_sd = lora_sdxl_TI.create_network_from_weights(
-                multiplier, weights_file, text_encoders, None, True
-            )
-            lora_model.merge_to(text_encoders, weights_sd, torch.float32, 'cuda')    
+    text_encoders = [text_encoder_one, text_encoder_two] 
     
     
     if args.gradient_checkpointing:
@@ -906,13 +891,7 @@ def main():
     accelerator.end_training()
     
     
-    if os.path.exists(model_path_TI):
-        network.save_weights(model_path, torch.float16, None)
-        final_models=[model_path, model_path_TI]
-        merge_lora_models(final_models, torch.float16, model_path)
-        subprocess.call('rm '+model_path_TI, shell=True)
-    else:
-        network.save_weights(model_path, torch.float16, None)
+    network.save_weights(model_path, torch.float16, None)
     
       
     accelerator.end_training()
