@@ -28,8 +28,6 @@ from tqdm import tqdm
 from safetensors.torch import load_file, save_file
 from transformers import CLIPTextModel, CLIPTokenizer, CLIPTextConfig, CLIPTextModelWithProjection
 
-import lora_sdxl_TI
-
 from lora_sdxl import *
 
 logger = get_logger(__name__)
@@ -689,7 +687,6 @@ def main():
     unet.eval()
     
     model_path = os.path.join(args.Session_dir, os.path.basename(args.Session_dir) + ".safetensors")
-    model_path_TI = os.path.join(args.Session_dir, os.path.basename(args.Session_dir) + "_TI.safetensors")
     network = create_network(1, args.dim, 20000, unet)
     if args.resume:
         network.load_weights(model_path)
@@ -712,20 +709,7 @@ def main():
    
     
     tokenizers = [tokenizer_one, tokenizer_two]
-    text_encoders = [text_encoder_one, text_encoder_two]
-    
-    if os.path.exists(model_path_TI):    
-        for weights_file in [model_path_TI]:
-            if ";" in weights_file:
-                weights_file, multiplier = weights_file.split(";")
-                multiplier = float(multiplier)
-            else:
-                multiplier = 1.0
-
-            lora_model, weights_sd = lora_sdxl_TI.create_network_from_weights(
-                multiplier, weights_file, text_encoders, None, True
-            )
-            lora_model.merge_to(text_encoders, weights_sd, torch.float32, 'cuda')    
+    text_encoders = [text_encoder_one, text_encoder_two] 
     
     
     if args.gradient_checkpointing:
@@ -906,13 +890,7 @@ def main():
     accelerator.end_training()
     
     
-    if os.path.exists(model_path_TI):
-        network.save_weights(model_path, torch.float16, None)
-        final_models=[model_path, model_path_TI]
-        merge_lora_models(final_models, torch.float16, model_path)
-        subprocess.call('rm '+model_path_TI, shell=True)
-    else:
-        network.save_weights(model_path, torch.float16, None)
+    network.save_weights(model_path, torch.float16, None)
     
       
     accelerator.end_training()
