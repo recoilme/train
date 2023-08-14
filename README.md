@@ -18,11 +18,13 @@ git clone https://github.com/recoilme/train && cd train
 nvidia-smi
 
 # Install dependencies.
-pip install xformers 
+pip install xformers (tons of downloads)
 
 pip install -r requirements.txt
 
 pip install bitsandbytes
+
+accelerate config default
 
 
 # Diffusers
