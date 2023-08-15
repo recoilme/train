@@ -775,7 +775,7 @@ def main():
     train_dataset = LatentsDataset(latents_cache, text_encoder_cache, cond_cache)
     train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=1, collate_fn=lambda x: x, shuffle=True)
 
-    del tokenizers, text_encoders
+    del vae, tokenizers, text_encoders
     gc.collect()
     torch.cuda.empty_cache()   
     
@@ -862,11 +862,11 @@ def main():
 
             if global_step >= args.max_train_steps:
                 break
-            if global_step % args.save_n_steps == 0:
-                accelerator.wait_for_everyone()
-                if accelerator.is_main_process:
-                    network2 = accelerator.unwrap_model(network)
-                    network2.save_weights(os.path.join(args.Session_dir, os.path.basename(args.Session_dir) + str(global_step) + ".safetensors"), torch.float16, None)
+            #if global_step % args.save_n_steps == 0:
+            #    accelerator.wait_for_everyone()
+            #    if accelerator.is_main_process:
+            #        network2 = accelerator.unwrap_model(network)
+            #        network2.save_weights(os.path.join(args.Session_dir, os.path.basename(args.Session_dir) + str(global_step) + ".safetensors"), torch.float16, None)
         
         # inference
         # create pipeline
