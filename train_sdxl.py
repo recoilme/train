@@ -884,7 +884,7 @@ def main():
             if global_step >= args.max_train_steps:
                 break
         # inference
-        network.save_weights(model_path+epoch, torch.float16, None)
+        network.save_weights(model_path+str(epoch), torch.float16, None)
         # create pipeline
         if not args.train_text_encoder:
             text_encoder_one = text_encoder_cls_one.from_pretrained(
@@ -926,8 +926,8 @@ def main():
         pipeline_args = {"prompt": "sks dog"}#args.validation_prompt}
 
         with torch.cuda.amp.autocast():
-        pipeline(**pipeline_args, generator=generator).images[0]
-        image.save("sks_dog"+epoch+".png")
+            pipeline(**pipeline_args, generator=generator).images[0]
+            image.save("sks_dog"+str(epoch)+".png")
 
         del pipeline
         torch.cuda.empty_cache()
