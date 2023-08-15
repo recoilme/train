@@ -5,6 +5,7 @@ import (
 	"log"
 	"math/rand"
 	"time"
+	"unsplash_dwn/pkg/api"
 )
 
 var AccessKey string
@@ -35,10 +36,10 @@ func main() {
 	for {
 
 		current := time.Now()
-		var photos Photos
+		var photos api.Photos
 
 		// Crawl Topics photos
-		photos, err := GetLikedPhotos(AccessKey,
+		photos, err := api.GetLikedPhotos(AccessKey,
 			UserName,
 			int(topics.PageOffset))
 
@@ -61,7 +62,7 @@ func main() {
 		hasErr := false
 		for _, photo := range photos {
 
-			err := DownloadFile(photo.Urls.Raw, photo.ID, photo.AltDescription)
+			err := api.DownloadFile(photo.Urls.Raw, photo.ID, photo.AltDescription)
 			if !hasErr && err != nil {
 				hasErr = true
 			}
