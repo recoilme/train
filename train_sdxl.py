@@ -843,7 +843,6 @@ def main():
                 # Sample noise that we'll add to the latents
                 if args.offset_noise:  
                     noise = torch.randn_like(model_input)
-
                 else:
                     noise = torch.randn_like(model_input)
 
@@ -884,6 +883,54 @@ def main():
 
             if global_step >= args.max_train_steps:
                 break
+        # inference
+        network.save_weights(model_path+epoch, torch.float16, None)
+        # create pipeline
+        if not args.train_text_encoder:
+            text_encoder_one = text_encoder_cls_one.from_pretrained(
+                args.pretrained_model_name_or_path, subfolder="text_encoder", revision=args.revision
+            )
+            text_encoder_two = text_encoder_cls_two.from_pretrained(
+                args.pretrained_model_name_or_path, subfolder="text_encoder_2", revision=args.revision
+            )
+        pipeline = StableDiffusionXLPipeline.from_pretrained(
+            args.pretrained_model_name_or_path,
+            vae=vae,
+            text_encoder=accelerator.unwrap_model(text_encoder_one),
+            text_encoder_2=accelerator.unwrap_model(text_encoder_two),
+            unet=accelerator.unwrap_model(unet),
+            revision=args.revision,
+            torch_dtype=weight_dtype,
+        )
+
+        # We train on the simplified learning objective. If we were previously predicting a variance, we need the scheduler to ignore it
+        scheduler_args = {}
+
+        if "variance_type" in pipeline.scheduler.config:
+            variance_type = pipeline.scheduler.config.variance_type
+
+            if variance_type in ["learned", "learned_range"]:
+                variance_type = "fixed_small"
+
+            scheduler_args["variance_type"] = variance_type
+
+        pipeline.scheduler = DPMSolverMultistepScheduler.from_config(
+            pipeline.scheduler.config, **scheduler_args
+        )
+
+        pipeline = pipeline.to(accelerator.device)
+        pipeline.set_progress_bar_config(disable=True)
+
+        # run inference
+        generator = torch.Generator(device=accelerator.device).manual_seed(args.seed)
+        pipeline_args = {"prompt": "sks dog"}#args.validation_prompt}
+
+        with torch.cuda.amp.autocast():
+        pipeline(**pipeline_args, generator=generator).images[0]
+        image.save("sks_dog"+epoch+".png")
+
+        del pipeline
+        torch.cuda.empty_cache()
 
     accelerator.wait_for_everyone()
     if accelerator.is_main_process:

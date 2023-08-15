@@ -10,6 +10,7 @@ import (
 
 var AccessKey string
 var UserName = "babakasotona"
+var prefix = "photo, "
 
 //var wg sync.WaitGroup
 
@@ -62,7 +63,7 @@ func main() {
 		hasErr := false
 		for _, photo := range photos {
 
-			err := api.DownloadFile(photo.Urls.Raw, photo.ID, photo.AltDescription)
+			err := api.DownloadFile(photo.Urls.Raw, photo.ID, prefix, photo.AltDescription)
 			if !hasErr && err != nil {
 				hasErr = true
 			}

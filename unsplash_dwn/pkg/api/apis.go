@@ -256,7 +256,7 @@ func GetRandomPhoto(AccessKey, key string) (Photos, error) {
 	}
 }
 
-func DownloadFile(URL, fileName, description string) error {
+func DownloadFile(URL, fileName, prefix, description string) error {
 	name := fileName + ".png"
 	_, err := os.Stat("img/" + name)
 
@@ -303,9 +303,6 @@ func DownloadFile(URL, fileName, description string) error {
 		return err
 	}
 
-	if description == "" {
-		return nil
-	}
 	desName := strings.Replace(name, ".png", ".txt", -1)
 	fileDesc, err := os.Create("cpt/" + desName)
 	if err != nil {
@@ -314,7 +311,7 @@ func DownloadFile(URL, fileName, description string) error {
 	}
 	defer fileDesc.Close()
 
-	_, err = io.Copy(fileDesc, strings.NewReader(description+","))
+	_, err = io.Copy(fileDesc, strings.NewReader(prefix+description+","))
 	if err != nil {
 		log.Println("Fail write file desc ", fileName)
 		return err
