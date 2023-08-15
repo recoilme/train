@@ -48,7 +48,10 @@ huggingface-cli login
 
 ## Train
 
-python3 train_sdxl.py --max_train_steps=300
+python3 train_sdxl.py --max_train_steps=300 --save_n_steps=100
+
 
 ## Tested a little on
 ubuntu 20.04 + python 3.8 + 3090 Gpu
+
+resulting lora on 3 img/300 steps
