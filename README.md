@@ -55,3 +55,5 @@ python3 train_sdxl.py --max_train_steps=300 --save_n_steps=100
 ubuntu 20.04 + python 3.8 + 3090 Gpu
 
 resulting lora on 3 img/300 steps
+![lora](https://github.com/recoilme/train/assets/417177/d94a8f16-7071-4f15-a348-0980bac8bbf7)
+
