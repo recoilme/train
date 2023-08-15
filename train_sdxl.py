@@ -899,7 +899,7 @@ def main():
             text_encoder=accelerator.unwrap_model(text_encoder_one),
             text_encoder_2=accelerator.unwrap_model(text_encoder_two),
             unet=accelerator.unwrap_model(unet),
-            revision=args.revision,
+            #revision=args.revision,
             torch_dtype=weight_dtype,
         )
 
