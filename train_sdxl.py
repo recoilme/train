@@ -863,7 +863,10 @@ def main():
             if global_step >= args.max_train_steps:
                 break
             if global_step % args.save_n_steps == 0:
-                network.save_weights(model_path+str(global_step), torch.float16, None)
+                accelerator.wait_for_everyone()
+                if accelerator.is_main_process:
+                    network2 = accelerator.unwrap_model(network)
+                    network2.save_weights(os.path.join(args.Session_dir, os.path.basename(args.Session_dir) + str(global_step) + ".safetensors"), torch.float16, None)
         
         # inference
         # create pipeline
