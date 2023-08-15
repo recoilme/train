@@ -9,7 +9,7 @@ pipe = DiffusionPipeline.from_pretrained(
     vae=vae, torch_dtype=torch.float16, variant="fp16",
     use_safetensors=True
 )
-pipe.load_lora_weights("sayakpaul/lora-trained-xl-colab")
+pipe.load_lora_weights("recoilme/lora-trained-xl-colab")
 
 _ = pipe.to("cuda")
 
