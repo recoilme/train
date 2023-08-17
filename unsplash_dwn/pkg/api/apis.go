@@ -303,8 +303,8 @@ func DownloadFile(URL, fileName, prefix, description string) error {
 		return err
 	}
 
-	desName := strings.Replace(name, ".png", ".txt", -1)
-	fileDesc, err := os.Create("cpt/" + desName)
+	desName := strings.Replace(name, ".png", ".caption", -1)
+	fileDesc, err := os.Create("img/" + desName)
 	if err != nil {
 		log.Println("Fail create file ", fileName)
 		return err

@@ -2,15 +2,19 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"math/rand"
+	"os"
+	"strings"
 	"time"
 	"unsplash_dwn/pkg/api"
 )
 
 var AccessKey string
 var UserName = "babakasotona"
-var prefix = "photo, "
+var prefix = "best quality, ultra detailed, photo, "
 
 //var wg sync.WaitGroup
 
@@ -27,6 +31,8 @@ type Topics struct {
 var topicsKeys = []string{}
 
 func main() {
+	//cop()
+	//os.Exit(0)
 	flag.StringVar(&AccessKey, "c", "", "Client Access Key.")
 	flag.Parse()
 
@@ -63,7 +69,7 @@ func main() {
 		hasErr := false
 		for _, photo := range photos {
 
-			err := api.DownloadFile(photo.Urls.Raw, photo.ID, prefix, photo.AltDescription)
+			err := api.DownloadFile(photo.Urls.Raw, strings.ReplaceAll(photo.ID, "-", "_"), prefix, photo.AltDescription)
 			if !hasErr && err != nil {
 				hasErr = true
 			}
@@ -92,4 +98,31 @@ func main() {
 		log.Println("Sleep: ", delay, " seconds.")
 		time.Sleep(time.Duration(delay) * time.Second)
 	}
+}
+
+func cop() {
+	entries, err := os.ReadDir("cpt")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, e := range entries {
+		fmt.Println(e.Name())
+		c := e.Name()
+		entries2, _ := os.ReadDir("img")
+		for _, e2 := range entries2 {
+			if strings.ReplaceAll(e2.Name(), "png", "") == strings.ReplaceAll(c, "caption", "") {
+				copy("img/"+e2.Name(), "1/"+e2.Name())
+				copy("cpt/"+c, "1/"+c)
+			}
+		}
+	}
+}
+
+func copy(src string, dst string) {
+	// Read all content of src to data, may cause OOM for a large file.
+	data, _ := ioutil.ReadFile(src)
+
+	// Write data to dst
+	ioutil.WriteFile(dst, data, 0644)
 }
