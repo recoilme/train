@@ -62,5 +62,33 @@ resulting lora on 3 img/300 steps
 ## Kohya train params for 3090 with 24 RAM
 
 ```
-accelerate launch  --num_cpu_threads_per_process 4 sdxl_train.py --resolution=1024,1024  --output_dir=mdl --output_name=tst2 --save_precision=fp16 --max_train_steps=3930 --mixed_precision=bf16 --logging_dir=mdl/log  --sample_every_n_steps=786 --seed=1234 --sample_prompts=prompt.txt --save_model_as=safetensors --train_data_dir=mdl/img --pretrained_model_name_or_path=/home/user/stable-diffusion-webui/models/Stable-diffusion/tst-000010.safetensors --vae=/home/user/stable-diffusion-webui/models/VAE/sdxl_vae.safetensors --cache_text_encoder_outputs --xformers --in_json=mdl/metadata_lat.json --lr_scheduler=constant_with_warmup --lr_warmup_steps=100 --save_every_n_epochs=5 --cache_latents --cache_latents_to_disk --noise_offset=0.2 --adaptive_noise_scale=0.02 --learning_rate=4e-7 --train_batch_size=1 --min_snr_gamma=5 --gradient_checkpointing --gradient_accumulation_steps=2 --full_bf16 --optimizer_type=adafactor --optimizer_args "scale_parameter=False" "relative_step=False" "warmup_init=False"
+accelerate launch  --num_cpu_threads_per_process 4 sdxl_train.py --resolution=1024,1024  --output_dir=mdl --output_name=tst2 --save_precision=fp16 --max_train_steps=5730 --mixed_precision=bf16 --logging_dir=mdl/log  --sample_every_n_steps=573 --seed=1234 --sample_prompts=prompt.txt --save_model_as=safetensors --train_data_dir=mdl/img --pretrained_model_name_or_path=/home/user/stable-diffusion-webui/models/Stable-diffusion/tst2.safetensors --vae=/home/user/stable-diffusion-webui/models/VAE/sdxl_vae.safetensors --cache_text_encoder_outputs --xformers --in_json=mdl/metadata_lat.json --lr_scheduler=constant_with_warmup --lr_warmup_steps=100 --save_every_n_epochs=5 --cache_latents --cache_latents_to_disk --noise_offset=0.2 --adaptive_noise_scale=0.02 --learning_rate=4e-7 --train_batch_size=1 --min_snr_gamma=5 --gradient_checkpointing --gradient_accumulation_steps=2 --full_bf16 --optimizer_type=adafactor --optimizer_args "scale_parameter=False" "relative_step=False" "warmup_init=False"
+```
+
+## Captions
+
+```
+python3 finetune/make_captions.py --batch_size=2 --max_length=100 --min_length=10 ~/sd-scripts/mdl/img
+
+python3 finetune/merge_captions_to_metadata.py --caption_extension=.caption mdl/img mdl/meta_cap.json
+
+python3 finetune/tag_images_by_wd14_tagger.py --batch 4 mdl/img
+
+python3 finetune/merge_dd_tags_to_metadata.py mdl/img --in_json mdl/meta_cap.json mdl/meta_cap_dd.json
+
+python3 finetune/prepare_buckets_latents.py mdl/img mdl/meta_cap_dd.json mdl/metadata_lat.json /home/user/sd-scripts/mdl/insomnia-000008.safetensors --max_resolution=1024,1024 --batch_size=6
+```
+
+## Kohya train params for v100
+```
+accelerate launch  --num_cpu_threads_per_process 8 sdxl_train.py --resolution=1024,1024  --output_dir=mdl --output_name=insomnia --save_precision=fp16 --max_train_steps=5100 --log_with=wandb --log_tracker_config=tracker.toml --logging_dir=mdl/log  --sample_every_n_steps=510 --seed=1234 --sample_prompts=prompt.txt --save_model_as=safetensors --train_data_dir=mdl/img --pretrained_model_name_or_path=/home/user/stable-diffusion-webui/models/Stable-diffusion/tst6.safetensors --vae=/home/user/stable-diffusion-webui/models/VAE/sdxl_vae.safetensors --cache_text_encoder_outputs --xformers --in_json=mdl/metadata_lat.json --lr_scheduler=constant_with_warmup --lr_warmup_steps=10  --save_every_n_epochs=2 --cache_latents --cache_latents_to_disk --full_bf16 --noise_offset=0.1 --adaptive_noise_scale=0.01 --learning_rate=4e-7 --train_batch_size=1 --min_snr_gamma=5 --optimizer_type=adafactor --optimizer_args "scale_parameter=False" "relative_step=False" "warmup_init=False"
+```
+## Kohya train params for A100 (hi memory, max speed)
+```
+accelerate launch --num_cpu_threads_per_process 8 sdxl_train.py --resolution=1024,1024  --output_dir=mdl --output_name=insomnia --metadata_title=insomnia --metadata_author=recoilme --metadata_description="telegram: t.me/recoilme" --save_state --save_precision=fp16 --max_train_steps=51000 --log_with=wandb --log_tracker_config=tracker.toml --logging_dir=mdl/log  --sample_every_n_steps=511 --seed=1234 --sample_prompts=prompt.txt --save_model_as=safetensors --train_data_dir=mdl/img --pretrained_model_name_or_path=/home/user/stable-diffusion-webui/models/Stable-diffusion/colorfulxl_v10.safetensors --vae=/home/user/stable-diffusion-webui/models/VAE/sdxl_vae.safetensors --cache_text_encoder_outputs --in_json=mdl/metadata_lat.json --lr_scheduler=constant_with_warmup --lr_warmup_steps=100  --save_every_n_epochs=2 --cache_latents --cache_latents_to_disk --train_text_encoder --noise_offset=0.1 --adaptive_noise_scale=0.01 --learning_rate=4e-7 --train_batch_size=2 --min_snr_gamma=5 --optimizer_type=adafactor --optimizer_args "scale_parameter=False" "relative_step=False" "warmup_init=False"
+```
+
+## Kohya train params for A100 (low memory)
+```
+accelerate launch --num_cpu_threads_per_process 10 sdxl_train.py --mixed_precision=bf16 --full_bf16 --resolution=1024,1024  --output_dir=mdl --output_name=insomnia --metadata_title=insomnia --metadata_author=recoilme --metadata_description="https://t.me/recoilme" --save_state --sdpa --max_token_length=225 --save_precision=fp16 --max_train_steps=51000 --log_with=wandb --log_tracker_config=tracker.toml --logging_dir=mdl/log  --sample_every_n_steps=255 --seed=1234 --sample_prompts=prompt.txt --save_model_as=safetensors --train_data_dir=mdl/img --pretrained_model_name_or_path=/home/user/sd-scripts/mdl/insomnia-000008.safetensors --resume=/home/user/sd-scripts/mdl/insomnia-000008-state --save_last_n_steps_state=2 --vae=/home/user/stable-diffusion-webui/models/VAE/sdxl_vae.safetensors --in_json=mdl/metadata_lat.json --lr_scheduler=constant_with_warmup --lr_warmup_steps=100  --save_every_n_epochs=2 --cache_latents --cache_latents_to_disk --train_text_encoder --noise_offset=0.2 --adaptive_noise_scale=0.02 --learning_rate=4e-7 --train_batch_size=1 --min_snr_gamma=5 --optimizer_type=adafactor --optimizer_args "scale_parameter=False" "relative_step=False" "warmup_init=False"
 ```
